@@ -1,0 +1,10 @@
+/*.log
+/target
+/*-init.clj
+/resources/public/js/compiled
+out
+/node_modules
+.shadow-cljs
+.lein*
+.nrepl-port
+riemann-console.edn

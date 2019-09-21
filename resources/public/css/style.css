@@ -1,0 +1,99 @@
+.fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.fa-border-none {
+    animation: beat 0.25s infinite alternate;
+}
+
+@keyframes beat{
+    to { transform: scale(1.15); }
+}
+
+/* dashboard selector */
+
+div[class^="selector"] { 
+    background-color: #111;
+    border-color: #111 !important;
+    /* color: #F4F4F4; */
+    color: #999999;
+    cursor: pointer;
+}
+
+span[class^="selector"] {
+    background-color: #111;
+}
+
+.selector__value-container {
+    color: #F4F4F4 !important;
+}
+
+.selector__option--is-focused { 
+    color: #F4F4F4 !important;
+}
+
+.selector__single-value {
+    color: #F4F4F4 !important;
+}
+
+
+/* grid layout */
+
+.react-grid-layout {
+  position: relative;
+  transition: height 200ms ease;
+}
+.react-grid-item {
+  transition: all 200ms ease;
+  transition-property: left, top;
+}
+.react-grid-item.cssTransforms {
+  transition-property: transform;
+}
+.react-grid-item.resizing {
+  z-index: 1;
+  will-change: width, height;
+}
+
+.react-grid-item.react-draggable-dragging {
+  transition: none;
+  z-index: 3;
+  will-change: transform;
+}
+
+.react-grid-item.react-grid-placeholder {
+  background: red;
+  opacity: 0.2;
+  transition-duration: 100ms;
+  z-index: 2;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+}
+
+.react-grid-item > .react-resizable-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  bottom: 0;
+  right: 0;
+  cursor: se-resize;
+}
+
+.react-grid-item > .react-resizable-handle::after {
+  content: "";
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 5px;
+  height: 5px;
+  border-right: 2px solid rgba(0, 0, 0, 0.4);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.4);
+}
