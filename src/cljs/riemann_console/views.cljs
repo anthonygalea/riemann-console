@@ -1,5 +1,6 @@
 (ns riemann-console.views
   (:require
+   [clojure.string :as string]
    [re-frame.core :as re-frame]
    [reagent.core :as reagent]
    [riemann-console.events :as events]
@@ -25,7 +26,7 @@
 (defn endpoint-text-field []
   (let [endpoint (re-frame/subscribe [::subs/dashboard-endpoint])]
     [:span
-     [:input.input-reset.ba.dib.pa2.db.bg-dark-gray.near-white.b--black.w-50.mr2
+     [:input.input-reset.ba.dib.pa2.bg-dark-gray.near-white.b--black.br1.w-50.mr2
        {:type "text"
         :value @endpoint
         :on-change #(re-frame/dispatch [::events/dashboard-endpoint-changed
@@ -283,6 +284,16 @@
      :on-change #(re-frame/dispatch [::events/widget-max-changed widget-id
                                      (-> % .-target .-value int)])}]])
 
+(defn widget-configurer-fields [widget-id fields]
+  [:div.mt2
+   [:label.db.fw6.lh-copy.f6.tl "Fields"]
+   [:input.pa2.input-reset.ba.w-100.bg-dark-gray.near-white.b--black.br1
+    {:name "fields"
+     :type "text"
+     :defaultValue fields
+     :on-blur #(re-frame/dispatch [::events/widget-fields-changed widget-id
+                                   (-> % .-target .-value)])}]])
+
 (defn widget-configurer []
   (let [configuring-widget (re-frame/subscribe [::subs/configuring-widget])
         widget (re-frame/subscribe [::subs/dashboard-widget @configuring-widget])]
@@ -305,6 +316,8 @@
             [:div
              [widget-configurer-min @configuring-widget (:min @widget)]
              [widget-configurer-max @configuring-widget (:max @widget)]]
+            :table
+            [widget-configurer-fields @configuring-widget (:fields @widget)]
             [:span])]]]])))
 
 ;; charts
@@ -324,26 +337,65 @@
                                (.resize @chart))})))
 
 
-(defn event->tr [idx event]
+(defn event->tr [fields idx event]
   [:tr {:key idx}
-   (->> (select-keys event ["time" "host" "service" "state" "metric"])
+   (->> (select-keys event fields)
         (map #(vector :td.pv2.bb.b--black-20 {:key (str idx (key %))} (val %))))])
 
-(defn table [{:keys [id title] :as widget}]
-  (let [stream (re-frame/subscribe [::subs/stream id])]
-    [:table.f6.w-100.mt4.near-white.collapse
-     [:thead
-      [:tr
-       [:th.bb.b--black-20.tl.pb3 "time"]
-       [:th.bb.b--black-20.tl.pb3 "host"]
-       [:th.bb.b--black-20.tl.pb3 "service"]
-       [:th.bb.b--black-20.tl.pb3 "state"]
-       [:th.bb.b--black-20.tl.pb3 "metric"]]]
-     [:tbody.lh-copy
-      (when @stream
-        (->> @stream
-             (rseq)
-             (map-indexed event->tr)))]]))
+(defn table [widget-id]
+  (let [filter-value (reagent/atom nil)
+        sort (reagent/atom {:sort-val nil :ascending true})
+        update-sort-value (fn [new-val]
+                            (if (= new-val (:sort-val @sort))
+                              (swap! sort update-in [:ascending] not)
+                              (swap! sort assoc :ascending true))
+                            (swap! sort assoc :sort-val new-val))
+        filter-content (fn [content]
+                         (if (string/blank? @filter-value)
+                           content
+                           (filter #(re-find (->> (str @filter-value)
+                                                  (string/upper-case)
+                                                  (re-pattern))
+                                             (string/upper-case (str (vals %))))
+                                   content)))
+        sort-content (fn [content]
+                       (if (:sort-val @sort)
+                         (sort-by #(get % (:sort-val @sort))
+                                  #(if (:ascending @sort)
+                                     (compare %1 %2)
+                                     (compare %2 %1))
+                                  content)
+                         content))]
+    (fn [widget-id]
+      [:div
+       [:div.dib.fr
+        [:i.fas.fa-search.mr2.black-50]
+        [:input.input-reset.ba.br1.pa2.bg-dark-gray.near-white.b--black
+         {:type "text" :class "mv3 mr1 b--black-40" :value @filter-value
+          :on-mouse-down #(.stopPropagation %)
+          :on-change #(reset! filter-value (-> % .-target .-value))}]]
+       (let [stream (re-frame/subscribe [::subs/stream widget-id])
+             fields (re-frame/subscribe [::subs/dashboard-widget-fields widget-id])]
+         [:table.f6.w-100.mt2.near-white.collapse
+          [:thead
+           [:tr
+            (doall
+             (for [field @fields]
+               [:th.bb.b--black-20.tl.pb3.pointer
+                {:key field
+                 :on-click #(update-sort-value field)}
+                field
+                [:i.fas.ml1
+                 {:class (cond
+                           (not= field (:sort-val @sort)) "fa-sort gray"
+                           (:ascending @sort) "fa-sort-up"
+                           :else "fa-sort-down")}]]))]]
+          [:tbody.lh-copy
+           (when @stream
+             (->> @stream
+                  (filter-content)
+                  (sort-content)
+                  (map-indexed (partial event->tr @fields))))]])])))
 
 (defn gauge [{:keys [id min max w h] :as widget}]
   (let [stream (re-frame/subscribe [::subs/stream id])]
@@ -424,7 +476,7 @@
       {:style {:height "95%"}}
       (case type
         :gauge [gauge widget]
-        :table [table widget]
+        :table [table id]
         :time-series [time-series widget])]]))
 
 ;; dashboard

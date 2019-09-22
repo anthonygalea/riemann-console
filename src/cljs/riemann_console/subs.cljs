@@ -1,5 +1,6 @@
 (ns riemann-console.subs
   (:require
+   [clojure.string :as string]
    [re-frame.core :as re-frame]))
 
 (re-frame/reg-sub
@@ -78,3 +79,10 @@
  ::dashboard-widget
  (fn [db [_ widget-id]]
    (get-in db [:dashboard :widgets widget-id])))
+
+(re-frame/reg-sub
+ ::dashboard-widget-fields
+ (fn [db [_ widget-id]]
+   (-> db
+       (get-in [:dashboard :widgets widget-id :fields])
+       (string/split #","))))

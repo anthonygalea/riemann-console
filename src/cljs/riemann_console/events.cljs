@@ -3,9 +3,10 @@
   (:require
    [ajax.core :as ajax]
    [amalloy.ring-buffer :as ring-buffer]
+   [clojure.string :as string]
    [cljs.core.async :as a :refer [<! >!]]
    [cognitect.transit :as t]
-   [goog.string :as string]
+   [goog.string :as gstring]
    [day8.re-frame.http-fx]
    [haslett.client :as ws]
    [haslett.format :as fmt]
@@ -231,6 +232,11 @@
    (assoc-in db [:dashboard :widgets widget-id :max] max)))
 
 (re-frame/reg-event-db
+ ::widget-fields-changed
+ (fn [db [_ widget-id fields]]
+   (assoc-in db [:dashboard :widgets widget-id :fields] fields)))
+
+(re-frame/reg-event-db
  ::widget-show-legend
  (fn [db [_ widget-id]]
    (update-in db [:dashboard :widgets widget-id :show-legend] not)))
@@ -250,6 +256,7 @@
                  :max-events 1000
                  :min 1
                  :max 100
+                 :fields "time,service,state,metric"
                  :query "state = \"ok\""}]
      {:db (assoc-in db [:dashboard :widgets id] widget)
       :stream {:action :add
@@ -399,7 +406,7 @@
 
   (go (let [stream (<! (ws/connect (str "ws://" endpoint
                                         "/index?subscribe=true&query="
-                                        (string/urlEncode query))))]
+                                        (gstring/urlEncode query))))]
         (when (ws/connected? stream)
           (swap! streams assoc widget-id stream)
           (re-frame/dispatch [::init-stream-buffer widget-id])
