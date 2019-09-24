@@ -338,7 +338,7 @@
   [:tr {:key idx
         :class (if (even? idx) "stripe-dark" "")}
    (->> (select-keys event fields)
-        (map #(vector :td.pv2.ph1.bb.b--black-20 {:key (str idx (key %))} (val %))))])
+        (map #(vector :td.pa1.bb.b--black-20 {:key (str idx (key %))} (val %))))])
 
 (defn table [widget-id]
   (let [filter-value (reagent/atom nil)
