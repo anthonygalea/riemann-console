@@ -248,12 +248,9 @@
      :value (name type)
      :on-change #(re-frame/dispatch [::events/widget-type-changed widget-id
                                      (-> % .-target .-value)])}
-    [:option {:label "Gauge"
-              :value "gauge"}]
-    [:option {:label "Table"
-              :value "table"}]
-    [:option {:label "Time Series"
-              :value "time-series"}]]])
+    [:option {:value "gauge"} "Gauge"]
+    [:option {:value "table"} "Table"]
+    [:option {:value "time-series"} "Time Series"]]])
 
 (defn widget-configurer-show-legend [widget-id show-legend]
   [:label.db.fw6.lh-copy.f6.tl.pointer.mt2
