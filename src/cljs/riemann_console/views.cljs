@@ -224,7 +224,7 @@
   [:div.mt2
    [:label.db.fw6.lh-copy.f6 {:for "query"} "Query"]
    [:textarea.pa2.input-reset.bg-dark-gray.ba.w-100.near-white.b--black.br1
-    {:name "query" :rows 8 :defaultValue query
+    {:name "query" :rows 8 :value query
      :placeholder "The query to send to riemann"
      :on-change #(re-frame/dispatch [::events/widget-query-changed widget-id
                                      (-> % .-target .-value)])}]])
