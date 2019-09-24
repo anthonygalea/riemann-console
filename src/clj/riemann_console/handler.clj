@@ -15,9 +15,8 @@
 
 (defn load-dashboard-config
   [id]
-  (let [dashboard-config (config/get-dashboard id)]
-    (when dashboard-config
-      (response/response (assoc dashboard-config :id id)))))
+  (when-let [dashboard-config (config/get-dashboard id)]
+    (response/response (assoc dashboard-config :id id))))
 
 (defn save-dashboard-config
   ([config]

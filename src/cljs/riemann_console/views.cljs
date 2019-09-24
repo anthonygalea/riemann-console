@@ -338,9 +338,10 @@
 
 
 (defn event->tr [fields idx event]
-  [:tr {:key idx}
+  [:tr {:key idx
+        :class (if (even? idx) "stripe-dark" "")}
    (->> (select-keys event fields)
-        (map #(vector :td.pv2.bb.b--black-20 {:key (str idx (key %))} (val %))))])
+        (map #(vector :td.pv2.ph1.bb.b--black-20 {:key (str idx (key %))} (val %))))])
 
 (defn table [widget-id]
   (let [filter-value (reagent/atom nil)
@@ -381,7 +382,7 @@
            [:tr
             (doall
              (for [field @fields]
-               [:th.bb.b--black-20.tl.pb3.pointer
+               [:th.bb.b--black-20.tl.pb2.ph1.pointer
                 {:key field
                  :on-click #(update-sort-value field)}
                 field
