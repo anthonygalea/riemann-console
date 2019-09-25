@@ -114,7 +114,7 @@
     :http-xhrio {:method          :put
                  :uri             (str "/d/" (get-in db [:dashboard :id]))
                  :timeout         request-timeout
-                 :params          (:dashboard db)
+                 :params          (dissoc (:dashboard db) :id)
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
                  :on-success      [::saving-dashboard-succeeded]
