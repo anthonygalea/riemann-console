@@ -218,92 +218,102 @@
    {:on-click #(re-frame/dispatch [::events/widget-configurer-closed])}
    [:i.fas.fa-times]])
 
-(defn widget-configurer-title [widget-id title]
-  [:div
-   [:label.db.fw6.lh-copy.f6.tl "Title"]
-   [:input.pa2.input-reset.ba.w-100.bg-dark-gray.near-white.b--black.br1
-    {:name "title"
-     :type "text"
-     :value title
-     :on-change #(re-frame/dispatch [::events/widget-title-changed widget-id
-                                     (-> % .-target .-value)])}]])
+(defn widget-configurer-title []
+  (let [title (re-frame/subscribe [::subs/widget-configurer-property :title])]
+    [:div
+     [:label.db.fw6.lh-copy.f6.tl "Title"]
+     [:input.pa2.input-reset.ba.w-100.bg-dark-gray.near-white.b--black.br1
+      {:name "title"
+       :type "text"
+       :value @title
+       :on-change #(re-frame/dispatch [::events/widget-property-changed :title
+                                       (-> % .-target .-value)])}]]))
 
-(defn widget-configurer-query [widget-id query]
-  [:div.mt2
-   [:label.db.fw6.lh-copy.f6 {:for "query"} "Query"]
-   [:textarea.pa2.input-reset.bg-dark-gray.ba.w-100.near-white.b--black.br1
-    {:name "query" :rows 8 :value query
-     :placeholder "The query to send to riemann"
-     :on-change #(re-frame/dispatch [::events/widget-query-changed widget-id
-                                     (-> % .-target .-value)])}]])
+(defn widget-configurer-query []
+  (let [query (re-frame/subscribe [::subs/widget-configurer-property :query])]
+    [:div.mt2
+     [:label.db.fw6.lh-copy.f6 {:for "query"} "Query"]
+     [:textarea.pa2.input-reset.bg-dark-gray.ba.w-100.near-white.b--black.br1
+      {:name "query" :rows 8 :value @query
+       :placeholder "The query to send to riemann"
+       :on-change #(re-frame/dispatch [::events/widget-query-changed
+                                       (-> % .-target .-value)])}]]))
 
-(defn widget-configurer-max-events [widget-id max-events]
-  [:div.mt2
-   [:label.db.fw6.lh-copy.f6.tl "Max events"]
-   [:input.pa2.input-reset.ba.w-100.bg-dark-gray.near-white.b--black.br1
-    {:name "max-events"
-     :title "Maximum number of events to keep"
-     :type "number"
-     :min 1
-     :value max-events
-     :on-change #(re-frame/dispatch [::events/widget-max-events-changed widget-id
-                                     (-> % .-target .-value int)])}]])
+(defn widget-configurer-max-events []
+  (let [max-events (re-frame/subscribe [::subs/widget-configurer-property
+                                        :max-events])]
+    [:div.mt2
+     [:label.db.fw6.lh-copy.f6.tl "Max events"]
+     [:input.pa2.input-reset.ba.w-100.bg-dark-gray.near-white.b--black.br1
+      {:name "max-events"
+       :title "Maximum number of events to keep"
+       :type "number"
+       :min 1
+       :value @max-events
+       :on-change #(re-frame/dispatch [::events/widget-max-events-changed
+                                       (-> % .-target .-value int)])}]]))
 
-(defn widget-configurer-type-selector [widget-id type]
-  [:div
-   [:label.db.fw6.lh-copy.f6.tl "Type"]
-   [:select.pa2.input-reset.ba.w-100.bg-dark-gray.near-white.b--black.br1
-    {:name "type"
-     :value (name type)
-     :on-change #(re-frame/dispatch [::events/widget-type-changed widget-id
-                                     (-> % .-target .-value)])}
-    [:option {:value "gauge"} "Gauge"]
-    [:option {:value "grid"} "Grid"]
-    [:option {:value "table"} "Table"]
-    [:option {:value "time-series"} "Time Series"]]])
+(defn widget-configurer-type-selector []
+  (let [type (re-frame/subscribe [::subs/widget-configurer-property :type])]
+    [:div
+     [:label.db.fw6.lh-copy.f6.tl "Type"]
+     [:select.pa2.input-reset.ba.w-100.bg-dark-gray.near-white.b--black.br1
+      {:name "type"
+       :value (name @type)
+       :on-change #(re-frame/dispatch [::events/widget-property-changed :type
+                                       (-> % .-target .-value keyword)])}
+      [:option {:value "gauge"} "Gauge"]
+      [:option {:value "grid"} "Grid"]
+      [:option {:value "table"} "Table"]
+      [:option {:value "time-series"} "Time Series"]]]))
 
-(defn widget-configurer-show-legend [widget-id show-legend]
-  [:label.db.fw6.lh-copy.f6.tl.pointer.mt2
-   [:input.mr2
-    {:type "checkbox"
-     :defaultChecked show-legend
-     :value show-legend
-     :on-click #(re-frame/dispatch [::events/widget-show-legend widget-id])}]
-   "Show legend"])
+(defn widget-configurer-show-legend []
+  (let [show-legend (re-frame/subscribe [::subs/widget-configurer-property
+                                         :show-legend])]
+    [:label.db.fw6.lh-copy.f6.tl.pointer.mt2
+     [:input.mr2
+      {:type "checkbox"
+       :defaultChecked @show-legend
+       :value @show-legend
+       :on-click #(re-frame/dispatch [::events/widget-show-legend])}]
+     "Show legend"]))
 
-(defn widget-configurer-min [widget-id min]
-  [:div.mt2
-   [:label.db.fw6.lh-copy.f6.tl "Min"]
-   [:input.pa2.input-reset.ba.w-100.bg-dark-gray.near-white.b--black.br1
-    {:name "min"
-     :type "number"
-     :value min
-     :on-change #(re-frame/dispatch [::events/widget-min-changed widget-id
-                                     (-> % .-target .-value int)])}]])
+(defn widget-configurer-min []
+  (let [min (re-frame/subscribe [::subs/widget-configurer-property :min])]
+    [:div.mt2
+     [:label.db.fw6.lh-copy.f6.tl "Min"]
+     [:input.pa2.input-reset.ba.w-100.bg-dark-gray.near-white.b--black.br1
+      {:name "min"
+       :type "number"
+       :value @min
+       :on-change #(re-frame/dispatch [::events/widget-property-changed :min
+                                       (-> % .-target .-value int)])}]]))
 
-(defn widget-configurer-max [widget-id max]
-  [:div.mt2
-   [:label.db.fw6.lh-copy.f6.tl "Max"]
-   [:input.pa2.input-reset.ba.w-100.bg-dark-gray.near-white.b--black.br1
-    {:name "max"
-     :type "number"
-     :value max
-     :on-change #(re-frame/dispatch [::events/widget-max-changed widget-id
-                                     (-> % .-target .-value int)])}]])
+(defn widget-configurer-max []
+  (let [max (re-frame/subscribe [::subs/widget-configurer-property :max])]
+    [:div.mt2
+     [:label.db.fw6.lh-copy.f6.tl "Max"]
+     [:input.pa2.input-reset.ba.w-100.bg-dark-gray.near-white.b--black.br1
+      {:name "max"
+       :type "number"
+       :value @max
+       :on-change #(re-frame/dispatch [::events/widget-property-changed :max
+                                       (-> % .-target .-value int)])}]]))
 
-(defn widget-configurer-fields [widget-id fields]
-  [:div.mt2
-   [:label.db.fw6.lh-copy.f6.tl "Fields"]
-   [:input.pa2.input-reset.ba.w-100.bg-dark-gray.near-white.b--black.br1
-    {:name "fields"
-     :type "text"
-     :defaultValue fields
-     :on-blur #(re-frame/dispatch [::events/widget-fields-changed widget-id
-                                   (-> % .-target .-value)])}]])
+(defn widget-configurer-fields []
+  (let [fields (re-frame/subscribe [::subs/widget-configurer-property :fields])]
+    [:div.mt2
+     [:label.db.fw6.lh-copy.f6.tl "Fields"]
+     [:input.pa2.input-reset.ba.w-100.bg-dark-gray.near-white.b--black.br1
+      {:name "fields"
+       :type "text"
+       :value @fields
+       :on-change #(re-frame/dispatch [::events/widget-property-changed :fields
+                                       (-> % .-target .-value)])}]]))
 
 (defn widget-configurer []
   (let [configuring-widget (re-frame/subscribe [::subs/configuring-widget])
-        widget (re-frame/subscribe [::subs/dashboard-widget @configuring-widget])]
+        type (re-frame/subscribe [::subs/widget-configurer-property :type])]
     (when @configuring-widget
       [:div.dib.fixed.bottom-0.bg-black-90.near-white.pa3.z-1.right-0.left-0
         [:div.bg-near-black.pa2.mw8.center
@@ -311,20 +321,20 @@
          [widget-configurer-close-button]
          [:div.flex.flex-wrap.justify-between-l.justify-around.pv2
           [:div.w-50-l.w-100.pr2
-           [widget-configurer-title @configuring-widget (:title @widget)]
-           [widget-configurer-max-events @configuring-widget (:max-events @widget)]
-           [widget-configurer-query @configuring-widget (:query @widget)]]
+           [widget-configurer-title]
+           [widget-configurer-max-events]
+           [widget-configurer-query]]
           [:div.w-50-l.w-100
-           [widget-configurer-type-selector @configuring-widget (:type @widget)]
-           (case (:type @widget)
+           [widget-configurer-type-selector]
+           (case @type
             :time-series
-            [widget-configurer-show-legend @configuring-widget (:show-legend @widget)]
+            [widget-configurer-show-legend]
             :gauge
             [:div
-             [widget-configurer-min @configuring-widget (:min @widget)]
-             [widget-configurer-max @configuring-widget (:max @widget)]]
+             [widget-configurer-min]
+             [widget-configurer-max]]
             :table
-            [widget-configurer-fields @configuring-widget (:fields @widget)]
+            [widget-configurer-fields]
             :grid
             [:span])]]]])))
 

@@ -195,51 +195,35 @@
              :widgets (-> db :dashboard :widgets)}}))
 
 (re-frame/reg-event-db
- ::widget-title-changed
- (fn [db [_ widget-id title]]
-   (assoc-in db [:dashboard :widgets widget-id :title] title)))
+ ::widget-property-changed
+ (fn [db [_ property value]]
+   (let [widget-id (:configuring-widget db)]
+     (assoc-in db [:dashboard :widgets widget-id property] value))))
 
 (re-frame/reg-event-fx
  ::widget-query-changed
- (fn [{:keys [db]} [_ widget-id query]]
-   {:db (assoc-in db [:dashboard :widgets widget-id :query] query)
-    :stream {:action :add
-             :endpoint (-> db :dashboard :endpoint)
-             :widgets {widget-id {:query query}}}}))
+ (fn [{:keys [db]} [_ query]]
+   (let [widget-id (:configuring-widget db)]
+     {:db (assoc-in db [:dashboard :widgets widget-id :query] query)
+      :stream {:action :add
+               :endpoint (-> db :dashboard :endpoint)
+               :widgets {widget-id {:query query}}}})))
 
 (re-frame/reg-event-db
  ::widget-max-events-changed
- (fn [db [_ widget-id max-events]]
-   (let [stream (get-in db [:streams widget-id])
+ (fn [db [_ max-events]]
+   (let [widget-id (:configuring-widget db)
+         stream (get-in db [:streams widget-id])
          buffer (ring-buffer/ring-buffer max-events)]
      (-> db
          (assoc-in [:dashboard :widgets widget-id :max-events] max-events)
          (assoc-in [:streams widget-id] (into buffer (seq stream)))))))
 
 (re-frame/reg-event-db
- ::widget-type-changed
- (fn [db [_ widget-id type]]
-   (assoc-in db [:dashboard :widgets widget-id :type] (keyword type))))
-
-(re-frame/reg-event-db
- ::widget-min-changed
- (fn [db [_ widget-id min]]
-   (assoc-in db [:dashboard :widgets widget-id :min] min)))
-
-(re-frame/reg-event-db
- ::widget-max-changed
- (fn [db [_ widget-id max]]
-   (assoc-in db [:dashboard :widgets widget-id :max] max)))
-
-(re-frame/reg-event-db
- ::widget-fields-changed
- (fn [db [_ widget-id fields]]
-   (assoc-in db [:dashboard :widgets widget-id :fields] fields)))
-
-(re-frame/reg-event-db
  ::widget-show-legend
- (fn [db [_ widget-id]]
-   (update-in db [:dashboard :widgets widget-id :show-legend] not)))
+ (fn [db [_]]
+   (let [widget-id (:configuring-widget db)]
+     (update-in db [:dashboard :widgets widget-id :show-legend] not))))
 
 (re-frame/reg-event-fx
  ::widget-added
