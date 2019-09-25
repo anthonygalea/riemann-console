@@ -258,6 +258,7 @@
      :on-change #(re-frame/dispatch [::events/widget-type-changed widget-id
                                      (-> % .-target .-value)])}
     [:option {:value "gauge"} "Gauge"]
+    [:option {:value "grid"} "Grid"]
     [:option {:value "table"} "Table"]
     [:option {:value "time-series"} "Time Series"]]])
 
@@ -324,6 +325,7 @@
              [widget-configurer-max @configuring-widget (:max @widget)]]
             :table
             [widget-configurer-fields @configuring-widget (:fields @widget)]
+            :grid
             [:span])]]]])))
 
 ;; charts
@@ -342,6 +344,58 @@
                                (.setOption @chart (clj->js o))
                                (.resize @chart))})))
 
+(defn longest-common-prefix [strings]
+  (reduce (fn [common-prefix c]
+            (if (every? #(string/starts-with? % (str common-prefix c)) strings)
+              (str common-prefix c)
+              (reduced common-prefix)))
+          ""
+   (first strings)))
+
+(defn events->grid-row [idx events]
+  [:tr
+   {:key idx
+    :class (if (even? idx) "stripe-dark" "")}
+   [:td.pv1.ph1.bb.br.b--black-20.near-white.nowrap
+    {:style {:width "1px"}}
+    (get (first events) "host")]
+   (for [event events]
+     [:td.pa1.ba.b--black-20
+      {:key (str event idx)
+       :class (case (get event "state")
+                "ok" "bg-green"
+                "warning" "bg-yellow"
+                "error" "bg-red")
+       :title (str event)}
+      (get event "metric")])])
+
+(defn grid [widget-id]
+  (let [stream (re-frame/subscribe [::subs/stream widget-id])]
+    (when @stream
+      [:table.f6.w-100.mw8.center.collapse.mt2
+       [:thead.near-white
+        [:tr
+         [:th.fw6.bb.b--black-20.tl.pb1.nowrap {:style {:width "1px"}} ""]
+         (let [services (->> @stream (group-by #(get % "service")) keys)
+               start (count (longest-common-prefix services))]
+           (for [service services]
+             [:th.fw6.bb.b--black-20.tl.pb1.ph1
+              {:key service}
+              (subs service start)]))]]
+       [:tbody.lh-copy
+        (->> @stream
+             (group-by #(vector (get % "host")))
+             (reduce-kv (fn [m host events]
+                          (let [event (->> events
+                                           (group-by #(get % "service"))
+                                           (map (fn [[_ events]]
+                                                  (->> events
+                                                       (sort-by #(get % "time"))
+                                                       (last)))))]
+                            (assoc m host event)))
+                        {})
+             (vals)
+             (map-indexed events->grid-row))]])))
 
 (defn event->tr [fields idx event]
   [:tr {:key idx
@@ -488,21 +542,23 @@
       {:style {:height "95%"}}
       (case type
         :gauge [gauge widget]
+        :grid [grid id]
         :table [table id]
         :time-series [time-series widget])]]))
 
 ;; dashboard
 
-(def grid (reagent/adapt-react-class (WidthProvider. Responsive)))
+(def panels (reagent/adapt-react-class (WidthProvider. Responsive)))
 
 (defn dashboard []
   (when-let [widgets @(re-frame/subscribe [::subs/dashboard-widgets])]
     [:div {:style {:padding-top "3rem"}}
-     [grid {:breakpoints {:lg 1200 :md 996 :sm 768 :xs 480 :xxs 0}
-            :cols {:lg 24 :md 20 :sm 12 :xs 8 :xxs 4}
-            :rowHeight 25 :width 1200
-            :onLayoutChange #(re-frame/dispatch
-                              [::events/layout-changed (js->clj % :keywordize-keys true)])}
+     [panels {:breakpoints {:lg 1200 :md 996 :sm 768 :xs 480 :xxs 0}
+              :cols {:lg 24 :md 20 :sm 12 :xs 8 :xxs 4}
+              :rowHeight 25 :width 1200
+              :onLayoutChange #(re-frame/dispatch
+                                [::events/layout-changed
+                                 (js->clj % :keywordize-keys true)])}
       (doall (for [[id widget] widgets]
                (widget-panel (assoc widget :id id))))]]))
 
