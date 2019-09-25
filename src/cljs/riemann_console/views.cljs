@@ -28,25 +28,30 @@
     [:span
      [:input.input-reset.ba.dib.pa2.bg-dark-gray.near-white.b--black.br1.w-50.mr2
        {:type "text"
+        :title "Riemann endpoint"
         :value @endpoint
         :on-change #(re-frame/dispatch [::events/dashboard-endpoint-changed
                                         (-> % .-target .-value)])}]
      [:span.bg-dark-gray.pa2.mr2.ba.b--black
       (let [streams? (re-frame/subscribe [::subs/streams?])]
         (if @streams?
-          [:i.fas.fa-satellite-dish.green]
-          [:i.fas.fa-satellite-dish.red]))]]))
+          [:i.fas.fa-satellite-dish.green
+           {:title "Receiving events"}]
+          [:i.fas.fa-satellite-dish.red
+           {:title "Not receiving events"}]))]]))
 
 (defn add-widget-button []
   [button
    {:class "bg-dark-green mr2"
+    :title "Add widget"
     :on-click #(re-frame/dispatch [::events/widget-added])}
    [:i.fas.fa-chart-pie]])
 
 (defn save-dashboard-button []
   (let [saving? @(re-frame/subscribe [::subs/saving?])]
     [button
-     {:on-click #(re-frame/dispatch [::events/dashboard-saved])}
+     {:title "Save dashboard"
+      :on-click #(re-frame/dispatch [::events/dashboard-saved])}
      (if saving?
        [:i.fas.fa-spinner]
        [:i.fas.fa-save])]))
@@ -54,6 +59,7 @@
 (defn dashboard-settings-button []
   [button
    {:class "mr2"
+    :title "Configure dashboard"
     :on-click #(re-frame/dispatch [::events/dashboard-settings?])}
    [:i.fas.fa-cog]])
 
@@ -75,12 +81,14 @@
 (defn add-dashboard-button []
   [button
    {:class "bg-dark-green mr2"
+    :title "Add dashboard"
     :on-click #(re-frame/dispatch [::events/dashboard-added])}
    [:i.fas.fa-plus]])
 
 (defn copy-dashboard-button []
   [button
    {:class "mr2"
+    :title "Copy dashboard"
     :on-click #(re-frame/dispatch [::events/dashboard-copied])}
    [:i.fas.fa-copy]])
 
@@ -234,6 +242,7 @@
    [:label.db.fw6.lh-copy.f6.tl "Max events"]
    [:input.pa2.input-reset.ba.w-100.bg-dark-gray.near-white.b--black.br1
     {:name "max-events"
+     :title "Maximum number of events to keep"
      :type "number"
      :min 1
      :value max-events
@@ -336,6 +345,7 @@
 
 (defn event->tr [fields idx event]
   [:tr {:key idx
+        :title (str event)
         :class (if (even? idx) "stripe-dark" "")}
    (->> (select-keys event fields)
         (map #(vector :td.pa1.bb.b--black-20 {:key (str idx (key %))} (val %))))])
@@ -397,20 +407,22 @@
 
 (defn gauge [{:keys [id min max w h] :as widget}]
   (let [stream (re-frame/subscribe [::subs/stream id])]
-    [echart {:series [{:type "gauge"
-                       :size [w h]
-                       :center ["50%" "60%"]
-                       :splitNumber 1
-                       :startAngle 190
-                       :endAngle -10
-                       :axisLine {:lineStyle {:color [[0.8 "#19A974"] [1 "#FF4136"]]
-                                              :width 10}}
-                       :axisLabel {:textStyle {:color "#fff"}}
-                       :axisTick {:length 0}
-                       :splitLine {:length 10}
-                       :min min
-                       :max max
-                       :data [{:value (-> @stream last (get "metric"))}]}]}]))
+    [:div.w-100.h-100
+     {:title (-> @stream last str)}
+     [echart {:series [{:type "gauge"
+                        :size [w h]
+                        :center ["50%" "60%"]
+                        :splitNumber 1
+                        :startAngle 190
+                        :endAngle -10
+                        :axisLine {:lineStyle {:color [[0.8 "#19A974"] [1 "#FF4136"]]
+                                               :width 10}}
+                        :axisLabel {:textStyle {:color "#fff"}}
+                        :axisTick {:length 0}
+                        :splitLine {:length 10}
+                        :min min
+                        :max max
+                        :data [{:value (-> @stream last (get "metric"))}]}]}]]))
 
 (defn service->echart-series [[service data]]
   {:name service
@@ -453,12 +465,14 @@
 (defn configure-widget-button [widget-id]
   [panel-button
    {:class "mr2"
+    :title "Configure widget"
     :on-click #(re-frame/dispatch [::events/configure-widget widget-id])}
    [:i.fas.fa-cog]])
 
 (defn close-widget-button [widget-id]
   [panel-button
-   {:on-click #(re-frame/dispatch [::events/widget-deleted widget-id])}
+   {:title "Delete widget"
+    :on-click #(re-frame/dispatch [::events/widget-deleted widget-id])}
    [:i.fas.fa-times]])
 
 (defn widget-panel [{:keys [id type title x y w h] :as widget}]
