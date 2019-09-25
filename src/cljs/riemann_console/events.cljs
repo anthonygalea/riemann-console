@@ -148,6 +148,11 @@
     :stream {:action :remove
              :widgets (-> db :dashboard :widgets)}}))
 
+(defn copy-widgets [widgets]
+  (reduce-kv (fn [m k v]
+               (assoc m (str (random-uuid)) v))
+             {} widgets))
+
 (re-frame/reg-event-fx
  ::dashboard-copied
  (fn [{:keys [db]}]
@@ -158,7 +163,8 @@
                    :timeout         request-timeout
                    :params          (-> dashboard
                                         (dissoc :id)
-                                        (assoc :name (str (:name dashboard) " (copy)")))
+                                        (assoc :name (str (:name dashboard) " (copy)"))
+                                        (update :widgets copy-widgets))
                    :format          (ajax/transit-request-format)
                    :response-format (ajax/transit-response-format)
                    :on-success      [::adding-dashboard-succeeded]
