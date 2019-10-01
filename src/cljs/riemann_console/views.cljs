@@ -375,7 +375,8 @@
        :class (case (get event "state")
                 "ok" "bg-green"
                 "warning" "bg-yellow"
-                "error" "bg-red")
+                "error" "bg-red"
+                "bg-blue")
        :title (str event)}
       (get event "metric")])])
 
