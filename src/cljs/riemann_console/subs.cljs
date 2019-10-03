@@ -76,6 +76,11 @@
    (get-in db [:dashboard :widgets])))
 
 (re-frame/reg-sub
+ ::widget
+ (fn [db [_ id]]
+   (get-in db [:dashboard :widgets id])))
+
+(re-frame/reg-sub
  ::widget-configurer-property
  (fn [db [_ property]]
    (let [widget-id (:configuring-widget db)]
