@@ -1,6 +1,6 @@
 # Riemann Console [![CI](https://github.com/anthonygalea/riemann-console/workflows/CI/badge.svg)](https://github.com/anthonygalea/riemann-console/actions?query=workflow%3ACI+branch%3Amaster)
 
-A dashboard for [Riemann](https://riemman.io)
+A dashboard for [Riemann](https://riemann.io)
 
 ![Demo](docs/demo.gif)
 
